@@ -26,3 +26,7 @@ ADD validate ${INSTALL_DIR}/
 ADD profiletokrona.pl ${INSTALL_DIR}/
 
 ADD Taskfile /
+
+ENV TERM xterm
+
+ENTRYPOINT ["validate"]
