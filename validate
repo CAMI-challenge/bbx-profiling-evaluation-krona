@@ -1,0 +1,56 @@
+#!/bin/bash
+
+set -o errexit
+set -o nounset
+
+TASK=$1
+OUTPUT=/bbx/mnt/output
+INPUT=/bbx/mnt/input/biobox.yaml
+METADATA=/bbx/mnt/metadata
+
+# Run the given task
+CMD=$(egrep ^${TASK}: /Taskfile | cut -f 2 -d ':')
+if [[ -z ${CMD} ]]; then
+  echo "Abort, no task found for '${TASK}'."
+  exit 1
+fi
+
+# if /bbx/metadata is mounted create log.txt
+if [ -d "$METADATA" ]; then
+  CMD="($CMD) >& $METADATA/log.txt"
+fi
+
+WORK_DIR=$(mktemp -d)
+
+INPUT_JSON="${WORK_DIR}/biobox.json"
+
+$(yaml2json < ${INPUT} > $INPUT_JSON)
+
+ARGUMENTS=$(jq  --raw-output '.arguments' $INPUT_JSON )
+
+#get predictions
+PREDICTIONS=$( echo $ARGUMENTS | jq --raw-output 'select(has("predictions")) | .predictions[].path ' | tr '\n' ' ' | xargs | tr ' ' ',' )
+
+#get labels
+LABELS=$( echo $ARGUMENTS | jq --raw-output 'select(has("predictions")) | .predictions[].id ' | tr '\n' ' ' | xargs | tr ' ' ',' )
+
+
+#get cache
+CACHE=$( echo $ARGUMENTS | jq --raw-output 'select(has("cache")) | .cache ' )
+
+#check if cache is defined
+if [ ! -z "$CACHE" ]; then
+        WORK_DIR=$CACHE
+fi
+
+eval ${CMD}
+
+cat << EOF > ${OUTPUT}/biobox.yaml
+version: 0.1.0
+results:
+  - name: HTML
+    type: html
+    inline: false
+    value: out.html
+    description: A summary of multiple metrics.
+EOF
