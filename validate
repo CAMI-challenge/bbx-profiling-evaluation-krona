@@ -45,12 +45,14 @@ fi
 
 eval ${CMD}
 
+htmlParser.py --input  ${OUTPUT}/out.html  --output ${OUTPUT}/standalone_out.html --krona /krona.js
+
 cat << EOF > ${OUTPUT}/biobox.yaml
 version: 0.1.0
 results:
   - name: HTML
     type: html
     inline: false
-    value: out.html
+    value: standalone_out.html
     description: A summary of multiple metrics.
 EOF
