@@ -1,1 +1,1 @@
-default: krona.pl -input ${PREDICTIONS}  -alias ${LABELS}  -output ${OUTPUT}/out.html
+default: krona.pl -input ${PREDICTION}  -alias input -output ${OUTPUT}/out.html
