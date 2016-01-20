@@ -3,7 +3,24 @@ MAINTAINER Peter Belmann, pbelmann@cebitec.uni-bielefeld.de
 
 RUN sudo apt-get update
 
-RUN sudo apt-get install  -y --no-install-recommends ca-certificates wget curl jq python python-bs4
+RUN sudo apt-get install  -y --no-install-recommends ca-certificates wget curl jq python python-bs4 xz-utils
+
+# Locations for biobox file validator
+ENV VALIDATOR /bbx/validator/
+ENV BASE_URL https://s3-us-west-1.amazonaws.com/bioboxes-tools/validate-biobox-file
+ENV VERSION  0.x.y
+RUN mkdir -p ${VALIDATOR}
+
+# download the validate-biobox-file binary and extract it to the directory $VALIDATOR
+RUN wget \
+      --quiet \
+      --output-document -\
+      ${BASE_URL}/${VERSION}/validate-biobox-file.tar.xz \
+    | tar xJf - \
+      --directory ${VALIDATOR} \
+      --strip-components=1
+
+ENV PATH ${PATH}:${VALIDATOR}
 
 ENV INSTALL_DIR /usr/local/bin
 
@@ -28,6 +45,8 @@ ADD profiletokrona.pl ${INSTALL_DIR}/
 ADD Taskfile /
 
 ADD htmlParser.py ${INSTALL_DIR}/
+
+ADD schema.yaml /
 
 ENV TERM xterm
 
