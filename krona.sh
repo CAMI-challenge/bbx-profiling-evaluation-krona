@@ -1,1 +1,0 @@
-perl krona.pl -input /vol/cami/profiling/55a99787d9b4e95bf28a377f/cfk8b.out,/vol/cami/profiling/55ad6df6d9b4e95bf28a3788/cfk7b.out,/vol/cami/profiling/55ad6fead9b4e95bf28a3789/cfk7d.out -alias cami1,cami2,cami3 -output ./camiprofile.html

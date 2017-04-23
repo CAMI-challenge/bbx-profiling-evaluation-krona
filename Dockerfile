@@ -1,53 +1,19 @@
-FROM ubuntu:14.04
-MAINTAINER Peter Belmann, pbelmann@cebitec.uni-bielefeld.de
+FROM bioboxes/biobox-minimal-base
 
-RUN sudo apt-get update
-
-RUN sudo apt-get install  -y --no-install-recommends ca-certificates wget curl jq python python-bs4 xz-utils
-
-# Locations for biobox file validator
-ENV VALIDATOR /bbx/validator/
-ENV BASE_URL https://s3-us-west-1.amazonaws.com/bioboxes-tools/validate-biobox-file
-ENV VERSION  0.x.y
-RUN mkdir -p ${VALIDATOR}
-
-# download the validate-biobox-file binary and extract it to the directory $VALIDATOR
-RUN wget \
-      --quiet \
-      --output-document -\
-      ${BASE_URL}/${VERSION}/validate-biobox-file.tar.xz \
-    | tar xJf - \
-      --directory ${VALIDATOR} \
-      --strip-components=1
-
-ENV PATH ${PATH}:${VALIDATOR}
+SHELL ["/bin/bash", "-c"]
 
 ENV INSTALL_DIR /usr/local/bin
 
-ENV CONVERT https://github.com/bronze1man/yaml2json/raw/master/builds/linux_386/yaml2json
+COPY image/ /usr/local
 
-RUN mkdir -p ${INSTALL_DIR} && cd ${INSTALL_DIR} && wget --quiet ${CONVERT} && chmod 700 yaml2json 
+RUN /usr/local/install.sh
 
-RUN wget http://sourceforge.net/projects/krona/files/latest/download -O ${INSTALL_DIR}/krona.tar
+COPY src/ ${INSTALL_DIR}
 
-RUN tar xvf ${INSTALL_DIR}/krona.tar --directory ${INSTALL_DIR}  --strip-components=1
+ENV SCHEMA /usr/local/schema.yaml
 
-RUN wget "http://krona.sourceforge.net/src/krona-2.0.js" -O /krona.js
+ENV OUTPUT /bbx/output
 
-RUN cd ${INSTALL_DIR} && install.pl
+ENV BIOBOX_EXEC execute_biobox.sh
 
-ADD krona.pl ${INSTALL_DIR}/
-
-ADD validate ${INSTALL_DIR}/
-
-ADD profiletokrona.pl ${INSTALL_DIR}/
-
-ADD Taskfile /
-
-ADD htmlParser.py ${INSTALL_DIR}/
-
-ADD schema.yaml /
-
-ENV TERM xterm
-
-ENTRYPOINT ["validate"]
+ENV TASKFILE /usr/local/Taskfile
